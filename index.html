@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ScamShield OSS | Digital Arrest & Forged Warrant Interceptor</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+</script>
+<style>
+  .bar { transition: width .5s ease, background-color .5s ease; }
+  .pulse-red { animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+</style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-6 font-sans">
+
+<header class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3 border-b border-slate-800 pb-4 mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-red-500 tracking-tight">🛡️ ScamShield OSS
+      <span class="text-xs bg-red-950 text-red-300 px-2 py-1 rounded ml-2 align-middle">Whisper + Qwen3 + Qwen2.5-VL</span>
+    </h1>
+    <p class="text-sm text-slate-400">Real-time "Digital Arrest" call interceptor &amp; forged warrant / FinePrint auditor</p>
+  </div>
+  <div class="flex items-center gap-2">
+    <input id="apiUrl" type="text" placeholder="Paste Kaggle ngrok URL (https://...)"
+      class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm w-80" />
+    <button onclick="saveUrl()" class="bg-slate-700 hover:bg-slate-600 text-xs px-3 py-2 rounded">Save</button>
+    <span id="conn" class="text-xs text-slate-500">not tested</span>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+  <!-- LEFT: CALL INTERCEPTOR -->
+  <section class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
+    <div>
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">🎙️ Live Call Audio Interceptor</h2>
+        <div class="flex gap-2">
+          <button id="micBtn" onclick="toggleMic()" class="bg-emerald-600 hover:bg-emerald-500 text-xs font-bold px-3 py-2 rounded">Start Live Mic</button>
+          <button onclick="runSimulatedCall()" class="bg-amber-600 hover:bg-amber-500 text-xs font-bold px-3 py-2 rounded">⚡ Stage Scam Demo</button>
+        </div>
+      </div>
+
+      <div class="bg-slate-950 border border-slate-800 rounded-lg p-4 mb-4">
+        <div class="flex justify-between items-end mb-2">
+          <span class="text-xs uppercase tracking-wider text-slate-400">Psychological Coercion &amp; Threat Meter</span>
+          <span id="scoreText" class="text-3xl font-extrabold" style="color:#34d399">0%</span>
+        </div>
+        <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden">
+          <div id="scoreBar" class="bar h-full" style="width:0%;background:#10b981"></div>
+        </div>
+        <p id="statusBadge" class="mt-2 text-xs font-bold" style="color:#34d399">STATUS: SAFE — MONITORING STREAM</p>
+      </div>
+
+      <div class="mb-4">
+        <label class="text-xs text-slate-400 uppercase">Live Whisper-v3-Turbo Transcript</label>
+        <div id="transcriptBox" class="bg-slate-950 border border-slate-800 rounded p-3 h-28 overflow-y-auto text-sm text-slate-300">
+          Waiting for speakerphone audio...
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-3">
+        <div class="bg-slate-950 border border-slate-800 rounded p-3">
+          <span class="text-xs text-slate-400 uppercase block mb-1">Detected Manipulation Tactics</span>
+          <div id="tacticsList" class="flex flex-wrap gap-1.5 text-xs text-slate-400">None detected</div>
+        </div>
+        <div class="bg-slate-950 border border-red-900/50 rounded p-3">
+          <span class="text-xs text-red-400 uppercase font-bold block mb-1">⚖️ Applicable Statutory Violation (BNS / IT Act)</span>
+          <p id="bnsText" class="text-xs text-slate-300">—</p>
+        </div>
+      </div>
+    </div>
+    <div id="adviceBanner" class="mt-4 bg-slate-800 border border-slate-700 rounded-lg p-3 text-xs text-slate-200">
+      💡 <strong>Actionable Shield:</strong> Keep speakerphone near laptop mic to audit live calls.
+    </div>
+  </section>
+
+  <!-- RIGHT: DOCUMENT SCANNER -->
+  <section class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
+    <div>
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">🔍 FinePrint &amp; Forged Warrant Scanner</h2>
+        <input type="file" id="docInput" accept="image/*,application/pdf,.pdf" class="hidden" onchange="scanDocument(event)" />
+        <button onclick="document.getElementById('docInput').click()" class="bg-indigo-600 hover:bg-indigo-500 text-xs font-bold px-3 py-2 rounded">Upload Document</button>
+      </div>
+
+      <div class="relative bg-slate-950 border border-slate-800 rounded-lg h-64 flex items-center justify-center overflow-hidden mb-3">
+        <canvas id="docCanvas" class="max-h-full max-w-full"></canvas>
+        <span id="canvasPlaceholder" class="text-xs text-slate-500 px-4 text-center">Drop a fake CBI/RBI notice or predatory contract image here</span>
+      </div>
+
+      <div class="bg-slate-950 border border-slate-800 rounded-lg p-3 mb-3">
+        <div class="flex justify-between items-center mb-2">
+          <span id="docVerdict" class="text-sm font-bold text-slate-300">Awaiting document scan...</span>
+          <span id="docRiskScore" class="text-xs bg-slate-800 px-2 py-1 rounded font-mono">Risk: 0/100</span>
+        </div>
+        <ul id="redFlagsList" class="list-disc list-inside text-xs text-red-300 space-y-1"></ul>
+      </div>
+    </div>
+
+    <div class="bg-slate-950 border border-indigo-900/60 rounded-lg p-3">
+      <div class="flex justify-between items-center mb-1">
+        <span class="text-xs font-bold text-indigo-400 uppercase">📄 Auto-Generated 1930 NCRP / Legal Counter-Notice</span>
+        <button onclick="navigator.clipboard.writeText(document.getElementById('counterNoticeText').innerText)"
+          class="text-xs bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded">Copy</button>
+      </div>
+      <p id="counterNoticeText" class="text-xs text-slate-300 font-mono">Upload a suspicious notice to generate an evidentiary summary.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+  let mediaRecorder, micActive = false, micStream = null;
+  const $ = id => document.getElementById(id);
+
+  // restore saved URL
+  try { const u = localStorage.getItem("ss_api"); if (u) $("apiUrl").value = u; } catch(e){}
+
+  function getBaseUrl() { return $("apiUrl").value.trim().replace(/\/$/, ""); }
+
+  async function saveUrl() {
+    try { localStorage.setItem("ss_api", getBaseUrl()); } catch(e){}
+    try {
+      const r = await fetch(getBaseUrl() + "/openapi.json", { headers: { "ngrok-skip-browser-warning": "true" } });
+      $("conn").innerText = r.ok ? "✅ connected" : "❌ HTTP " + r.status;
+      $("conn").style.color = r.ok ? "#34d399" : "#f87171";
+    } catch (e) {
+      $("conn").innerText = "❌ unreachable";
+      $("conn").style.color = "#f87171";
+    }
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  }
+
+  async function toggleMic() {
+    const btn = $("micBtn");
+    if (micActive) {
+      micActive = false;
+      if (mediaRecorder && mediaRecorder.state === "recording") mediaRecorder.stop();
+      if (micStream) micStream.getTracks().forEach(t => t.stop());
+      btn.innerText = "Start Live Mic";
+      btn.className = "bg-emerald-600 hover:bg-emerald-500 text-xs font-bold px-3 py-2 rounded";
+      return;
+    }
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (e) {
+      alert("Microphone blocked. Open this page via http://localhost (not file://) and allow the mic.");
+      return;
+    }
+    micActive = true;
+    btn.innerText = "🛑 Stop Mic (Listening...)";
+    btn.className = "bg-red-600 pulse-red text-xs font-bold px-3 py-2 rounded";
+
+    const recordChunk = () => {
+      if (!micActive) return;
+      mediaRecorder = new MediaRecorder(micStream);
+      let chunks = [];
+      mediaRecorder.ondataavailable = e => chunks.push(e.data);
+      mediaRecorder.onstop = async () => {
+        if (chunks.length) {
+          const blob = new Blob(chunks, { type: "audio/webm" });
+          const fd = new FormData();
+          fd.append("audio", blob, "chunk.webm");
+          sendCallData(fd);              // don't block the next recording
+        }
+        if (micActive) recordChunk();
+      };
+      mediaRecorder.start();
+      setTimeout(() => { if (mediaRecorder.state === "recording") mediaRecorder.stop(); }, 5000);
+    };
+    recordChunk();
+  }
+
+  async function runSimulatedCall() {
+    const fd = new FormData();
+    fd.append("fallback_text",
+      "This is Inspector Vikram from Mumbai Cyber Crime and CBI Headquarters. Your Aadhaar was found in a seized parcel containing illegal items. " +
+      "Do not disconnect this video call and do not tell anyone. You must transfer 95,000 rupees immediately to our RBI verification account or you will be arrested today.");
+    await sendCallData(fd);
+  }
+
+  function colorFor(score) {
+    if (score >= 70) return { bar: "#ef4444", txt: "#f87171" };
+    if (score >= 36) return { bar: "#f59e0b", txt: "#fbbf24" };
+    return { bar: "#10b981", txt: "#34d399" };
+  }
+
+  async function sendCallData(formData) {
+    try {
+      const res = await fetch(getBaseUrl() + "/analyze-call", {
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true" }, body: formData
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      if (!data.transcript) return;
+
+      const box = $("transcriptBox");
+      box.innerText = (micActive ? box.innerText.replace("Waiting for speakerphone audio...", "") + " " : "") + data.transcript;
+      box.scrollTop = box.scrollHeight;
+
+      const score = Number(data.coercion_score) || 0;
+      const c = colorFor(score);
+      $("scoreText").innerText = score + "%";
+      $("scoreText").style.color = c.txt;
+      $("scoreBar").style.width = score + "%";
+      $("scoreBar").style.background = c.bar;
+      $("statusBadge").innerText = "STATUS: " + (data.status || "UNKNOWN");
+      $("statusBadge").style.color = c.txt;
+      $("bnsText").innerText = data.bns_violation || "—";
+      $("adviceBanner").innerHTML = "🚨 <strong>Actionable Shield:</strong> " + esc(data.advice || "");
+      $("tacticsList").innerHTML = (data.tactics || []).map(t =>
+        `<span class="bg-red-950 text-red-300 border border-red-800 px-2 py-0.5 rounded">${esc(t)}</span>`).join("") || "None detected";
+    } catch (e) {
+      $("statusBadge").innerText = "ERROR: " + e.message + " (check URL / backend)";
+      $("statusBadge").style.color = "#f87171";
+    }
+  }
+
+  async function scanDocument(event) {
+    let file = event.target.files[0];
+    event.target.value = "";            // lets you re-pick the same file later
+    if (!file) return;
+    $("canvasPlaceholder").style.display = "none";
+
+    const canvas = $("docCanvas");
+    const ctx = canvas.getContext("2d");
+    $("docVerdict").innerText = "Preparing document...";
+
+    try {
+      const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+      if (isPdf) {
+        if (!window.pdfjsLib) throw new Error("PDF reader failed to load (check internet)");
+        // render page 1 of the PDF to the canvas, then send that image to the backend
+        const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 2 });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: ctx, viewport }).promise;
+        const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+        file = new File([blob], file.name.replace(/\.pdf$/i, "") + "-page1.png", { type: "image/png" });
+      } else {
+        const img = new Image();
+        img.src = URL.createObjectURL(file);
+        await img.decode();
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+      }
+    } catch (e) {
+      $("docVerdict").innerText = "ERROR reading file: " + e.message;
+      return;
+    }
+
+    $("docVerdict").innerText = "Scanning with Qwen2.5-VL-7B...";
+    const fd = new FormData();
+    fd.append("file", file);
+
+    try {
+      const res = await fetch(getBaseUrl() + "/scan-document", {
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true" }, body: fd
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+
+      $("docVerdict").innerText = data.verdict || "Scan complete";
+      $("docRiskScore").innerText = "Risk: " + (data.authenticity_risk_score ?? "?") + "/100";
+      $("redFlagsList").innerHTML = (data.red_flags || []).map(f => `<li>${esc(f)}</li>`).join("");
+      $("counterNoticeText").innerText = data.counter_notice || "";
+
+      ctx.strokeStyle = "#ef4444";
+      ctx.fillStyle = "#ef4444";
+      ctx.lineWidth = Math.max(4, canvas.width * 0.006);
+      ctx.font = `${Math.max(14, canvas.width * 0.02)}px sans-serif`;
+      (data.flagged_regions || []).forEach(reg => {
+        if (reg.box_2d && reg.box_2d.length === 4) {
+          const [ymin, xmin, ymax, xmax] = reg.box_2d;
+          const x = (xmin / 1000) * canvas.width;
+          const y = (ymin / 1000) * canvas.height;
+          const w = ((xmax - xmin) / 1000) * canvas.width;
+          const h = ((ymax - ymin) / 1000) * canvas.height;
+          ctx.strokeRect(x, y, w, h);
+          if (reg.label) ctx.fillText(reg.label, x, Math.max(16, y - 6));
+        }
+      });
+    } catch (e) {
+      $("docVerdict").innerText = "ERROR: " + e.message;
+    }
+  }
+</script>
+</body>
+</html>
