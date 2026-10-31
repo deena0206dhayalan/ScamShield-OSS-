@@ -1,0 +1,21 @@
+# secrets
+.env
+*.token
+
+# local database & logs
+*.db
+*.log
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# notebooks
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
